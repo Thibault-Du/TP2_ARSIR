@@ -10,7 +10,7 @@ import java.nio.file.Paths;
 
 public class Serveur {
     private static final int clientPort = 6789;
-    private static final String repertoire = "Ressources/";
+    private static final String repertoire = "Ressource/";
     private static final Map<String, String> utilisateurs = new HashMap<>();
     private static final Set<String> utilisateursConnectes = new HashSet<>(); //pour garder une liste des utilisateurs actuellement connectés.
     private static BufferedReader lecteur;
@@ -56,9 +56,17 @@ public class Serveur {
 
                 switch (cmd) {
                     case "USER":
+                        if (elements.length < 2) {
+                            writer.println("508 => Erreur de syntaxe : user non spécifié");
+                            break;
+                        }
                         this.userCommand(elements[1]);
                         break;
                     case "PASS":
+                        if (elements.length < 2) {
+                            writer.println("507 => Erreur de syntaxe : password non spécifié");
+                            break;
+                        }
                         this.passCommand(elements[1]);
                         break;
                     case "DIR":
@@ -83,6 +91,10 @@ public class Serveur {
                         }
                         break;
                     case "CWD":
+                        if (elements.length < 2) {
+                            writer.println("505 => Erreur de syntaxe : repertoire non spécifié");
+                            break;
+                        }
                         String nouveauRepertoire = elements[1];
                         File tempRepertoire = new File(repertoire + nouveauRepertoire);
                         if (tempRepertoire.exists() && tempRepertoire.isDirectory()) {
