@@ -9,28 +9,39 @@ public class Serveur {
     private static final String repertoire = "Ressources/";
     private static final Map<String, String> utilisateurs = new HashMap<>();
     private static final Set<String> utilisateursConnectes = new HashSet<>(); //pour garder une liste des utilisateurs actuellement connectés.
+    private static BufferedReader lecteur;
+    private static PrintWriter writer;
+    private static String nomUtilisateur = "";
+
+
 
     public static void main(String[] args) {
-        utilisateurs.put("toto", "password");  // utilisateur autorisé
+        Serveur s = new Serveur();
+    }
+
+    public Serveur() {
+        utilisateurs.put("toto", "password");
+        utilisateurs.put("anonymous", "*");// utilisateur autorisé
         System.out.println("Serveur FTP en cours d'exécution sur le port " + clientPort);
 
         try (ServerSocket serveurSocket = new ServerSocket(clientPort)) {
             while (true) {
                 Socket socketClient = serveurSocket.accept();
+                lecteur = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
+                writer = new PrintWriter(socketClient.getOutputStream(), true);
                 new Thread(() -> gererClient(socketClient)).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
-    private static void gererClient(Socket socketClient) {
-        try (BufferedReader lecteur = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
-             PrintWriter writer = new PrintWriter(socketClient.getOutputStream(), true)) {
+    private void gererClient(Socket socketClient) {
+        try {
 
             writer.println("220 => Service prêt pour un nouvel utilisateur");
             String repertoireActuel = repertoire;
-            String nomUtilisateur = "";
 
             while (true) {
                 String commande = lecteur.readLine();
@@ -41,8 +52,7 @@ public class Serveur {
 
                 switch (cmd) {
                     case "USER":
-                        nomUtilisateur = elements[1]; //element = USER nom_utilisateur, donc on prend le nom d'utisateur
-                        writer.println("331 => Utilisateur reconnu, en attente du mot de passe");
+                        this.userCommand(elements[1]);
                         break;
                     case "PASS":
                         if (utilisateurs.containsKey(nomUtilisateur) && utilisateurs.get(nomUtilisateur).equals(elements[1])) {
@@ -92,6 +102,15 @@ public class Serveur {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void userCommand(String userName){
+        nomUtilisateur = userName;
+        if (utilisateurs.containsKey(userName)){
+            writer.println("331 => Utilisateur reconnu, en attente du mot de passe");
+        } else {
+            writer.println("431 => Utilisateur non reconnu, entrez un autre utilisateur");
         }
     }
 
