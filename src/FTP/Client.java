@@ -29,9 +29,10 @@ public class Client {
 
     public void receiveMessage() {
         try {
-
-            String serverResponse = reader.readLine();
-            System.out.println("Réponse du serveur : " + serverResponse);
+            while(true){
+                String serverResponse = reader.readLine();
+                System.out.println("Réponse du serveur : " + serverResponse);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
