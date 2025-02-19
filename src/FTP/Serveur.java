@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Serveur {
-    private static final int clientPort = 21;
+    private static final int clientPort = 6789;
     private static final String repertoire = "Ressources/";
     private static final Map<String, String> utilisateurs = new HashMap<>();
     private static final Set<String> utilisateursConnectes = new HashSet<>(); //pour garder une liste des utilisateurs actuellement connectés.
