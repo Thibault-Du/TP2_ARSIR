@@ -55,12 +55,7 @@ public class Serveur {
                         this.userCommand(elements[1]);
                         break;
                     case "PASS":
-                        if (utilisateurs.containsKey(nomUtilisateur) && utilisateurs.get(nomUtilisateur).equals(elements[1])) {
-                            utilisateursConnectes.add(nomUtilisateur);
-                            writer.println("230 Connexion réussie");
-                        } else {
-                            writer.println("430 Identifiant ou mot de passe incorrect");
-                        }
+                        this.passCommand(elements[1]);
                         break;
                     case "LIST":
                         File dossier = new File(repertoireActuel);
@@ -111,6 +106,15 @@ public class Serveur {
             writer.println("331 => Utilisateur reconnu, en attente du mot de passe");
         } else {
             writer.println("431 => Utilisateur non reconnu, entrez un autre utilisateur");
+        }
+    }
+
+    private void passCommand(String password){
+        if ((utilisateurs.containsKey(nomUtilisateur) && utilisateurs.get(nomUtilisateur).equals(password)) || nomUtilisateur.equals("anonymous")) {
+            utilisateursConnectes.add(nomUtilisateur);
+            writer.println("230 Connexion réussie");
+        } else {
+            writer.println("430 Identifiant ou mot de passe incorrect");
         }
     }
 
