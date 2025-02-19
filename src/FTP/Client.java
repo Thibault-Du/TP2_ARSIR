@@ -51,8 +51,6 @@ public class Client {
 
             Scanner scanner = new Scanner(System.in);
             while (true) {
-                System.out.println("Entrez votre message (ou 'quit' pour terminer) : ");
-
                 String message = scanner.nextLine();
                 if (message.equalsIgnoreCase("quit")) {
                     break;
