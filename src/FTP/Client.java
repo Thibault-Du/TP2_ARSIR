@@ -4,52 +4,72 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 
 public class Client {
-    private String serverAddress;
-    private int serverPort;
+    private Socket socket;
+    private BufferedReader reader;
+    private PrintWriter writer;
 
     public Client(String serverAddress, int serverPort) {
-        this.serverAddress = serverAddress;
-        this.serverPort = serverPort;
+
+        try {
+            // Initialisation du socket et des flux
+            this.socket = new Socket(serverAddress, serverPort);
+            this.reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.writer = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException e) {
+            System.err.println("Erreur lors de la connexion au serveur : " + e.getMessage());
+            e.printStackTrace();
+        }
+
     }
 
-    public void requestTime() {
-        try (Socket socket = new Socket(serverAddress, serverPort);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-             PrintWriter writer = new PrintWriter(socket.getOutputStream(), true)) {
+    public void receiveMessage() {
+        try {
 
-            // Utilisation du Scanner pour que le client entre son choix
-            Scanner sc = new Scanner(System.in);
-            System.out.print("Que voulez-vous afficher: (DATE, HOUR, FULL): ");
-            String message = sc.nextLine();  // Le message est lu depuis l'entrée de l'utilisateur
-
-            /*while (!message.isEmpty() && !message.equals("CLOSE") && (!message.equals("DATE") || !message.equals("HOUR")|| !message.equals("FULL"))) {
-                System.out.print("Message non-reconnu!");
-                message = "";
-                System.out.print("Utilisez DATE pour la date, HOUR pour l'heure, FULL pour les deux ou CLOSE pour quitter: ");
-
-                System.out.print("Que voulez-vous afficher: (DATE, HOUR, FULL): ");
-                message = sc.nextLine();  // Le message est lu depuis l'entrée de l'utilisateur
-            }*/
-
-
-            // Envoi de la demande au serveur
-            writer.println(message);
-
-            // Lecture et affichage de la réponse du serveur
             String serverResponse = reader.readLine();
-            System.out.println("Réponse du serveur : " + serverResponse);
-
-            // On peut envoyer d'autres demandes ici
-            writer.println("CLOSE"); // Fermer la connexion après la demande
-            serverResponse = reader.readLine();
             System.out.println("Réponse du serveur : " + serverResponse);
 
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+
+
+    public void start(){
+        try {
+            System.out.println("Adresse IP du client : " + InetAddress.getLocalHost().getHostAddress());
+            System.out.println("Client démarré...");
+
+            Thread receivingThread = new Thread(this::receiveMessage);
+            receivingThread.start();
+
+            Scanner scanner = new Scanner(System.in);
+            while (true) {
+                System.out.println("Entrez votre message (ou 'quit' pour terminer) : ");
+
+                String message = scanner.nextLine();
+                if (message.equalsIgnoreCase("quit")) {
+                    break;
+                }
+                writer.println(message);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (socket != null && !socket.isClosed()) {
+                    socket.close();
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 
@@ -58,6 +78,6 @@ public class Client {
         int serverPort = 6789; // Port du serveur
 
         Client client = new Client(serverAddress, serverPort);
-        client.requestTime();
+        client.start();
     }
 }
